@@ -22,3 +22,7 @@ github:
   prebuilds:
     # enable for the master/default branch (defaults to true)
     master: false
+
+vscode:
+  extensions:
+    - alexcvzz.vscode-sqlite@0.8.2:CKh7wsjIsH5zuv3a7N3bag==
