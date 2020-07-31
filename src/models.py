@@ -36,8 +36,8 @@ class Role(db.Model):
 class StaffUser(db.Model):
     __tablename__ = 'staff_users'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), unique=False, nullable=False)
-    lastName = db.Column(db.String(120), unique=False, nullable=False)
+    name = db.Column(db.String(120), unique=False, default="")
+    lastName = db.Column(db.String(120), unique=False, default="")
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(80), unique=False, nullable=False)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), unique=True, nullable=False)
@@ -71,8 +71,8 @@ class StaffUser(db.Model):
 class TeacherUser(db.Model):
     __tablename__ = 'teacher_users'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), unique=False, nullable=False)
-    lastName = db.Column(db.String(120), unique=False, nullable=False)
+    name = db.Column(db.String(120), unique=False, default="")
+    lastName = db.Column(db.String(120), unique=False, default="")
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(80), unique=False, nullable=False)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), unique=True, nullable=False)
@@ -106,12 +106,12 @@ class TeacherUser(db.Model):
 class StudentUser(db.Model):
     __tablename__ = 'student_users'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), unique=False, nullable=False)
-    lastName = db.Column(db.String(120), unique=False, nullable=False)
+    name = db.Column(db.String(120), unique=False, default="")
+    lastName = db.Column(db.String(120), unique=False, default="")
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(80), unique=False, nullable=False)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), unique=True, nullable=False)
-    is_active = db.Column(db.Boolean(), unique=False, nullable=False)
+    is_active = db.Column(db.Boolean(), default=True)
     profiles = db.relationship('Profile', backref='studentUser', lazy=True)
 
     def __repr__(self):
@@ -123,7 +123,7 @@ class StudentUser(db.Model):
             "name": self.name,
             "lastName": self.lastName,
             "email": self.email,
-            "role": self.role.serialize
+            "role": self.role.serialize()
             
             # do not serialize the password, its a security breach
         }
@@ -406,7 +406,7 @@ class TeacherQuestionnarie(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     staff_user = db.Column(db.Integer, db.ForeignKey('staff_users.id'), unique=True, nullable=False)
     questionnarie_details = db.Column(db.String(200), unique=False, nullable=False)
-    strenght_question = db.relationship('StrengthQuestion', backref='strenght', lazy=True)
+    strenght_question = db.relationship('StrenghtQuestion', backref='strenght', lazy=True)
     weakness_question = db.relationship('WeaknessQuestion', backref='weakness', lazy=True)
     projection_question = db.relationship('ProjectionQuestion', backref='projection', lazy=True)
 
