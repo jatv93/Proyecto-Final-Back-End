@@ -46,40 +46,6 @@ def roles():
 
     return jsonify(response_body), 200
 
-@app.route('/staff_users/<int:id>', methods=['GET', 'POST', 'PUT', 'DELETE'])
-def staff_users(id = None):
-
-    if request.method == 'GET':
-        if id is not None:
-            staff = staff_users.query.get(id) # None por defecto si no consigue el registro
-            if staff:
-                return jsonify(staff.serialize()), 200
-            return jsonify({"msg": "Test not found"}), 404
-
-    response_body = {
-        "msg": "Hello, this is your GET /staff response "
-    }
-
-    return jsonify(response_body), 200
-
-@app.route('/teacher_users', methods=['GET'])
-def teacher_users():
-
-    response_body = {
-        "msg": "Hello, this is your GET /teacher response "
-    }
-
-    return jsonify(response_body), 200
-
-@app.route('/student_users', methods=['GET'])
-def student_users():
-
-    response_body = {
-        "msg": "Hello, this is your GET /student response "
-    }
-
-    return jsonify(response_body), 200
-
 @app.route('/register', methods=['POST'])
 def register():
     email = request.json.get("email", None)
@@ -98,8 +64,8 @@ def register():
     student.name = request.json.get("name", "")
     student.lastName = request.json.get("lastName", "")
     student.email = email
-    student.password = bcrypt.generate_password_hash(password)
-    student.role_id = request.json.get("role_id")
+    student.password = bcrypt.generate_password_hash(password).decode("utf-8")
+    student.role_id = "2"
 
     student.save()
 
@@ -130,7 +96,6 @@ def login():
     }
    
     return jsonify({"success": "Log In Successfully", "data": data}), 200
-
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':

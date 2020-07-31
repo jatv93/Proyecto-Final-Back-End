@@ -111,7 +111,7 @@ class StudentUser(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(80), unique=False, nullable=False)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), unique=True, nullable=False)
-    is_active = db.Column(db.Boolean(), unique=False, nullable=False)
+    is_active = db.Column(db.Boolean(), default=True)
     profiles = db.relationship('Profile', backref='studentUser', lazy=True)
 
     def __repr__(self):
