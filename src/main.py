@@ -49,80 +49,124 @@ def create_role():
 
     return jsonify({"success": "Register Successfully"}), 200
 
-@app.route('/student_register', methods=['POST'])
-def student_register():
-    email = request.json.get("email", None)
-    password = request.json.get("password", None)
-
-    if not email:
-        return jsonify({"msg": "Email is required"}), 400
-    if not password:
-        return jsonify({"msg": "Password is required"}), 400
-
-    student = StudentUser.query.filter_by(email=email).first()
-    if student:
-        return jsonify({"msg": "Email already exists"}), 400
+@app.route('/student_users', methods=['GET','POST'])
+@app.route('/student_users/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+def student_users(id = None):
+    if request.method == 'GET':
+        if id is not None:
+            student = StudentUser.query.get(id) # None por defecto si no consigue el registro
+            if student:
+                return jsonify(student.serialize()), 200
+            return jsonify({"msg": "User not found"}), 404
+        else:
+            student = StudentUser.query.all()
+            student = list(map(lambda student: student.serialize(), student))
+            return jsonify(student), 200
     
-    student = StudentUser()
-    student.name = request.json.get("name", "")
-    student.lastName = request.json.get("lastName", "")
-    student.email = email
-    student.password = bcrypt.generate_password_hash(password).decode("utf-8")
-    student.role_id = "2"
+    if request.method == 'POST':
 
-    student.save()
+        email = request.json.get("email", None)
+        password = request.json.get("password", None)
 
-    return jsonify({"success": "Register Successfully"}), 200
+        if not email:
+            return jsonify({"msg": "Email is required"}), 400
+        if not password:
+            return jsonify({"msg": "Password is required"}), 400
 
-@app.route('/staff_register', methods=['POST'])
-def staff_register():
-    email = request.json.get("email", None)
-    password = request.json.get("password", None)
+        student = StudentUser.query.filter_by(email=email).first()
+        if student:
+            return jsonify({"msg": "Email already exists"}), 400
+        
+        student = StudentUser()
+        student.name = request.json.get("name", "")
+        student.lastName = request.json.get("lastName", "")
+        student.email = email
+        student.password = bcrypt.generate_password_hash(password).decode("utf-8")
+        student.role_id = "1"
 
-    if not email:
-        return jsonify({"msg": "Email is required"}), 400
-    if not password:
-        return jsonify({"msg": "Password is required"}), 400
+        student.save()
 
-    staff = StaffUser.query.filter_by(email=email).first()
-    if staff:
-        return jsonify({"msg": "Email already exists"}), 400
+        return jsonify({"success": "Register Successfully"}), 200
+
+
+@app.route('/staff_users', methods=['GET','POST'])
+@app.route('/staff_users/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+def staff_users(id = None):
+    if request.method == 'GET':
+        if id is not None:
+            staff = StaffUser.query.get(id) # None por defecto si no consigue el registro
+            if staff:
+                return jsonify(staff.serialize()), 200
+            return jsonify({"msg": "User not found"}), 404
+        else:
+            staff = StaffUser.query.all()
+            staff = list(map(lambda staff: staff.serialize(), staff))
+            return jsonify(staff), 200
     
-    staff = StaffUser()
-    staff.name = request.json.get("name", "")
-    staff.lastName = request.json.get("lastName", "")
-    staff.email = email
-    staff.password = bcrypt.generate_password_hash(password).decode("utf-8")
-    staff.role_id = "1"
+    if request.method == 'POST':
 
-    staff.save()
+        email = request.json.get("email", None)
+        password = request.json.get("password", None)
 
-    return jsonify({"success": "Register Successfully"}), 200
+        if not email:
+            return jsonify({"msg": "Email is required"}), 400
+        if not password:
+            return jsonify({"msg": "Password is required"}), 400
 
-@app.route('/teacher_register', methods=['POST'])
-def teacher_register():
-    email = request.json.get("email", None)
-    password = request.json.get("password", None)
+        staff = StaffUser.query.filter_by(email=email).first()
+        if staff:
+            return jsonify({"msg": "Email already exists"}), 400
+        
+        staff = StaffUser()
+        staff.name = request.json.get("name", "")
+        staff.lastName = request.json.get("lastName", "")
+        staff.email = email
+        staff.password = bcrypt.generate_password_hash(password).decode("utf-8")
+        staff.role_id = "1"
 
-    if not email:
-        return jsonify({"msg": "Email is required"}), 400
-    if not password:
-        return jsonify({"msg": "Password is required"}), 400
+        staff.save()
 
-    teacher = TeacherUser.query.filter_by(email=email).first()
-    if teacher:
-        return jsonify({"msg": "Email already exists"}), 400
+        return jsonify({"success": "Register Successfully"}), 200
+  
+
+@app.route('/teacher_users', methods=['GET','POST'])
+@app.route('/teacher_users/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+def teacher_users(id = None):
+    if request.method == 'GET':
+        if id is not None:
+            teacher = TeacherUser.query.get(id) # None por defecto si no consigue el registro
+            if teacher:
+                return jsonify(teacher.serialize()), 200
+            return jsonify({"msg": "User not found"}), 404
+        else:
+            teacher = TeacherUser.query.all()
+            teacher = list(map(lambda teacher: teacher.serialize(), teacher))
+            return jsonify(teacher), 200
     
-    teacher = TeacherUser()
-    teacher.name = request.json.get("name", "")
-    teacher.lastName = request.json.get("lastName", "")
-    teacher.email = email
-    teacher.password = bcrypt.generate_password_hash(password).decode("utf-8")
-    teacher.role_id = "3"
+    if request.method == 'POST':
 
-    teacher.save()
+        email = request.json.get("email", None)
+        password = request.json.get("password", None)
 
-    return jsonify({"success": "Register Successfully"}), 200
+        if not email:
+            return jsonify({"msg": "Email is required"}), 400
+        if not password:
+            return jsonify({"msg": "Password is required"}), 400
+
+        teacher = TeacherUser.query.filter_by(email=email).first()
+        if teacher:
+            return jsonify({"msg": "Email already exists"}), 400
+        
+        teacher = TeacherUser()
+        teacher.name = request.json.get("name", "")
+        teacher.lastName = request.json.get("lastName", "")
+        teacher.email = email
+        teacher.password = bcrypt.generate_password_hash(password).decode("utf-8")
+        teacher.role_id = "1"
+
+        teacher.save()
+
+        return jsonify({"success": "Register Successfully"}), 200
 
 
 @app.route('/student_login', methods=['POST'])
@@ -203,8 +247,6 @@ def teacher_login():
     }
    
     return jsonify({"success": "Log In Successfully", "data": data}), 200
-
-
 
 
 # this only runs if `$ python src/main.py` is executed
