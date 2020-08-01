@@ -14,6 +14,7 @@ from flask_jwt_extended.jwt_manager import JWTManager
 from flask_jwt_extended.utils import create_access_token, get_jwt_identity
 from flask_jwt_extended.view_decorators import jwt_required
 from datetime import datetime
+from datetime import timedelta
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
@@ -37,17 +38,19 @@ def handle_invalid_usage(error):
 def sitemap():
     return generate_sitemap(app)
 
-@app.route('/roles', methods=['GET'])
-def roles():
+@app.route('/roles', methods=['POST'])
+def create_role():
+    name = request.json.get("name", None)
+    
+    role = Role()
+    role.name = request.json.get("name", "")
+   
+    role.save()
 
-    response_body = {
-        "msg": "Hello, this is your GET /role response "
-    }
+    return jsonify({"success": "Register Successfully"}), 200
 
-    return jsonify(response_body), 200
-
-@app.route('/register', methods=['POST'])
-def register():
+@app.route('/student_register', methods=['POST'])
+def student_register():
     email = request.json.get("email", None)
     password = request.json.get("password", None)
 
@@ -71,8 +74,59 @@ def register():
 
     return jsonify({"success": "Register Successfully"}), 200
 
-@app.route('/login', methods=['POST'])
-def login():
+@app.route('/staff_register', methods=['POST'])
+def staff_register():
+    email = request.json.get("email", None)
+    password = request.json.get("password", None)
+
+    if not email:
+        return jsonify({"msg": "Email is required"}), 400
+    if not password:
+        return jsonify({"msg": "Password is required"}), 400
+
+    staff = StaffUser.query.filter_by(email=email).first()
+    if staff:
+        return jsonify({"msg": "Email already exists"}), 400
+    
+    staff = StaffUser()
+    staff.name = request.json.get("name", "")
+    staff.lastName = request.json.get("lastName", "")
+    staff.email = email
+    staff.password = bcrypt.generate_password_hash(password).decode("utf-8")
+    staff.role_id = "1"
+
+    staff.save()
+
+    return jsonify({"success": "Register Successfully"}), 200
+
+@app.route('/teacher_register', methods=['POST'])
+def teacher_register():
+    email = request.json.get("email", None)
+    password = request.json.get("password", None)
+
+    if not email:
+        return jsonify({"msg": "Email is required"}), 400
+    if not password:
+        return jsonify({"msg": "Password is required"}), 400
+
+    teacher = TeacherUser.query.filter_by(email=email).first()
+    if teacher:
+        return jsonify({"msg": "Email already exists"}), 400
+    
+    teacher = TeacherUser()
+    teacher.name = request.json.get("name", "")
+    teacher.lastName = request.json.get("lastName", "")
+    teacher.email = email
+    teacher.password = bcrypt.generate_password_hash(password).decode("utf-8")
+    teacher.role_id = "3"
+
+    teacher.save()
+
+    return jsonify({"success": "Register Successfully"}), 200
+
+
+@app.route('/student_login', methods=['POST'])
+def student_login():
     email = request.json.get("email", None)
     password = request.json.get("password", None)
 
@@ -88,7 +142,7 @@ def login():
     if not bcrypt.check_password_hash(student.password, password):
         return jsonify({"msg": "Email/password incorrect"}), 400
 
-    expires = datetime.timedelta(days=3)
+    expires = timedelta(days=3)
     
     data = {
         "access_token": create_access_token(identity=student.email, expires_delta=expires),
@@ -96,6 +150,62 @@ def login():
     }
    
     return jsonify({"success": "Log In Successfully", "data": data}), 200
+
+@app.route('/staff_login', methods=['POST'])
+def staff_login():
+    email = request.json.get("email", None)
+    password = request.json.get("password", None)
+
+    if not email:
+        return jsonify({"msg": "Email is required"}), 400
+    if not password:
+        return jsonify({"msg": "Password is required"}), 400
+
+    staff = StaffUser.query.filter_by(email=email).first()
+    if not staff:
+        return jsonify({"msg": "Email/password incorrect"}), 400
+    
+    if not bcrypt.check_password_hash(staff.password, password):
+        return jsonify({"msg": "Email/password incorrect"}), 400
+
+    expires = timedelta(days=3)
+    
+    data = {
+        "access_token": create_access_token(identity=staff.email, expires_delta=expires),
+        "staff": staff.serialize()
+    }
+   
+    return jsonify({"success": "Log In Successfully", "data": data}), 200
+
+
+@app.route('/teacher_login', methods=['POST'])
+def teacher_login():
+    email = request.json.get("email", None)
+    password = request.json.get("password", None)
+
+    if not email:
+        return jsonify({"msg": "Email is required"}), 400
+    if not password:
+        return jsonify({"msg": "Password is required"}), 400
+
+    teacher = TeacherUser.query.filter_by(email=email).first()
+    if not teacher:
+        return jsonify({"msg": "Email/password incorrect"}), 400
+    
+    if not bcrypt.check_password_hash(teacher.password, password):
+        return jsonify({"msg": "Email/password incorrect"}), 400
+
+    expires = timedelta(days=3)
+    
+    data = {
+        "access_token": create_access_token(identity=teacher.email, expires_delta=expires),
+        "teacher": teacher.serialize()
+    }
+   
+    return jsonify({"success": "Log In Successfully", "data": data}), 200
+
+
+
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
