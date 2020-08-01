@@ -40,7 +40,7 @@ class StaffUser(db.Model):
     lastName = db.Column(db.String(120), unique=False, default="")
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(80), unique=False, nullable=False)
-    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), unique=True, nullable=False)
+    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), nullable=False)
     is_active = db.Column(db.Boolean(), default=True)
 
     def __repr__(self):
@@ -75,7 +75,7 @@ class TeacherUser(db.Model):
     lastName = db.Column(db.String(120), unique=False, default="")
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(80), unique=False, nullable=False)
-    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), unique=True, nullable=False)
+    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), nullable=False)
     is_active = db.Column(db.Boolean(), default=True)
 
     def __repr__(self):
