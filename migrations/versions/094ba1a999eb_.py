@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 4d25af9f921a
+Revision ID: 094ba1a999eb
 Revises: 
-Create Date: 2020-07-31 00:25:57.381292
+Create Date: 2020-07-31 19:39:12.326473
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '4d25af9f921a'
+revision = '094ba1a999eb'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -31,7 +31,7 @@ def upgrade():
     sa.Column('email', sa.String(length=120), nullable=False),
     sa.Column('password', sa.String(length=80), nullable=False),
     sa.Column('role_id', sa.Integer(), nullable=False),
-    sa.Column('is_active', sa.Boolean(), nullable=False),
+    sa.Column('is_active', sa.Boolean(), nullable=True),
     sa.ForeignKeyConstraint(['role_id'], ['roles.id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email'),
@@ -47,8 +47,7 @@ def upgrade():
     sa.Column('is_active', sa.Boolean(), nullable=True),
     sa.ForeignKeyConstraint(['role_id'], ['roles.id'], ),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('email'),
-    sa.UniqueConstraint('role_id')
+    sa.UniqueConstraint('email')
     )
     op.create_table('teacher_users',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -57,7 +56,7 @@ def upgrade():
     sa.Column('email', sa.String(length=120), nullable=False),
     sa.Column('password', sa.String(length=80), nullable=False),
     sa.Column('role_id', sa.Integer(), nullable=False),
-    sa.Column('is_active', sa.Boolean(), nullable=False),
+    sa.Column('is_active', sa.Boolean(), nullable=True),
     sa.ForeignKeyConstraint(['role_id'], ['roles.id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email'),
