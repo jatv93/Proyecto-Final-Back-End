@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: c39aeed3890c
+Revision ID: 537262974a35
 Revises: 
-Create Date: 2020-08-01 20:21:30.189451
+Create Date: 2020-08-04 22:28:54.867966
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'c39aeed3890c'
+revision = '537262974a35'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -63,7 +63,10 @@ def upgrade():
     op.create_table('profiles',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('student_id', sa.Integer(), nullable=False),
-    sa.Column('breathecodeID', sa.String(length=100), nullable=False),
+    sa.Column('breathecode_id', sa.String(length=100), nullable=False),
+    sa.Column('name', sa.String(length=120), nullable=True),
+    sa.Column('lastName', sa.String(length=120), nullable=True),
+    sa.Column('email', sa.String(length=120), nullable=False),
     sa.Column('size', sa.String(length=20), nullable=False),
     sa.Column('address', sa.String(length=200), nullable=False),
     sa.Column('phone', sa.String(length=120), nullable=False),
@@ -71,9 +74,9 @@ def upgrade():
     sa.Column('rut', sa.String(length=100), nullable=False),
     sa.ForeignKeyConstraint(['student_id'], ['student_users.id'], ),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('breathecodeID'),
-    sa.UniqueConstraint('rut'),
-    sa.UniqueConstraint('student_id')
+    sa.UniqueConstraint('breathecode_id'),
+    sa.UniqueConstraint('email'),
+    sa.UniqueConstraint('rut')
     )
     op.create_table('student_questionnaries',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -104,10 +107,10 @@ def upgrade():
     op.create_table('enrrollment_agreements',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('urlPDF', sa.String(length=200), nullable=False),
-    sa.Column('breathecodeID', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['breathecodeID'], ['profiles.breathecodeID'], ),
+    sa.Column('breathecode_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['breathecode_id'], ['profiles.breathecode_id'], ),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('breathecodeID')
+    sa.UniqueConstraint('breathecode_id')
     )
     op.create_table('financing_agreements',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -132,11 +135,11 @@ def upgrade():
     )
     op.create_table('job_profiles',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('breathecodeID', sa.Integer(), nullable=False),
+    sa.Column('breathecode_id', sa.Integer(), nullable=False),
     sa.Column('urlPDF', sa.String(length=200), nullable=False),
-    sa.ForeignKeyConstraint(['breathecodeID'], ['profiles.breathecodeID'], ),
+    sa.ForeignKeyConstraint(['breathecode_id'], ['profiles.breathecode_id'], ),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('breathecodeID')
+    sa.UniqueConstraint('breathecode_id')
     )
     op.create_table('payments',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -181,10 +184,10 @@ def upgrade():
     sa.Column('questionnarie_id', sa.Integer(), nullable=False),
     sa.Column('question', sa.String(length=200), nullable=False),
     sa.Column('status', sa.String(length=120), nullable=False),
-    sa.Column('breathecodeID', sa.String(length=100), nullable=False),
+    sa.Column('breathecode_id', sa.String(length=100), nullable=False),
     sa.ForeignKeyConstraint(['questionnarie_id'], ['student_questionnaries.id'], ),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('breathecodeID'),
+    sa.UniqueConstraint('breathecode_id'),
     sa.UniqueConstraint('questionnarie_id')
     )
     op.create_table('weakness_questions',
@@ -201,15 +204,15 @@ def upgrade():
     sa.Column('question_id', sa.Integer(), nullable=False),
     sa.Column('answer', sa.String(length=200), nullable=False),
     sa.Column('teacher_user', sa.Integer(), nullable=False),
-    sa.Column('breathecodeID', sa.Integer(), nullable=False),
+    sa.Column('breathecode_id', sa.Integer(), nullable=False),
     sa.Column('date', sa.DateTime(), nullable=True),
     sa.Column('questionnarie_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['breathecodeID'], ['profiles.breathecodeID'], ),
+    sa.ForeignKeyConstraint(['breathecode_id'], ['profiles.breathecode_id'], ),
     sa.ForeignKeyConstraint(['question_id'], ['student_questions.id'], ),
     sa.ForeignKeyConstraint(['questionnarie_id'], ['student_questionnaries.id'], ),
     sa.ForeignKeyConstraint(['teacher_user'], ['teacher_users.id'], ),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('breathecodeID'),
+    sa.UniqueConstraint('breathecode_id'),
     sa.UniqueConstraint('question_id'),
     sa.UniqueConstraint('questionnarie_id'),
     sa.UniqueConstraint('teacher_user')
@@ -219,15 +222,15 @@ def upgrade():
     sa.Column('projectionQuestion_id', sa.Integer(), nullable=False),
     sa.Column('answer', sa.String(length=200), nullable=False),
     sa.Column('teacher_user', sa.Integer(), nullable=False),
-    sa.Column('breathecodeID', sa.Integer(), nullable=False),
+    sa.Column('breathecode_id', sa.Integer(), nullable=False),
     sa.Column('date', sa.DateTime(), nullable=True),
     sa.Column('questionnarie_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['breathecodeID'], ['profiles.breathecodeID'], ),
+    sa.ForeignKeyConstraint(['breathecode_id'], ['profiles.breathecode_id'], ),
     sa.ForeignKeyConstraint(['projectionQuestion_id'], ['projection_questions.id'], ),
     sa.ForeignKeyConstraint(['questionnarie_id'], ['teacher_questionnaries.id'], ),
     sa.ForeignKeyConstraint(['teacher_user'], ['teacher_users.id'], ),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('breathecodeID'),
+    sa.UniqueConstraint('breathecode_id'),
     sa.UniqueConstraint('projectionQuestion_id'),
     sa.UniqueConstraint('questionnarie_id'),
     sa.UniqueConstraint('teacher_user')
@@ -237,15 +240,15 @@ def upgrade():
     sa.Column('strenghtQuestion_id', sa.Integer(), nullable=False),
     sa.Column('answer', sa.String(length=200), nullable=False),
     sa.Column('teacher_user', sa.Integer(), nullable=False),
-    sa.Column('breathecodeID', sa.Integer(), nullable=False),
+    sa.Column('breathecode_id', sa.Integer(), nullable=False),
     sa.Column('date', sa.DateTime(), nullable=True),
     sa.Column('questionnarie_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['breathecodeID'], ['profiles.breathecodeID'], ),
+    sa.ForeignKeyConstraint(['breathecode_id'], ['profiles.breathecode_id'], ),
     sa.ForeignKeyConstraint(['questionnarie_id'], ['teacher_questionnaries.id'], ),
     sa.ForeignKeyConstraint(['strenghtQuestion_id'], ['strength_questions.id'], ),
     sa.ForeignKeyConstraint(['teacher_user'], ['teacher_users.id'], ),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('breathecodeID'),
+    sa.UniqueConstraint('breathecode_id'),
     sa.UniqueConstraint('questionnarie_id'),
     sa.UniqueConstraint('strenghtQuestion_id'),
     sa.UniqueConstraint('teacher_user')
@@ -255,15 +258,15 @@ def upgrade():
     sa.Column('weaknessQuestion_id', sa.Integer(), nullable=False),
     sa.Column('answer', sa.String(length=200), nullable=False),
     sa.Column('teacher_user', sa.Integer(), nullable=False),
-    sa.Column('breathecodeID', sa.Integer(), nullable=False),
+    sa.Column('breathecode_id', sa.Integer(), nullable=False),
     sa.Column('date', sa.DateTime(), nullable=True),
     sa.Column('questionnarie_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['breathecodeID'], ['profiles.breathecodeID'], ),
+    sa.ForeignKeyConstraint(['breathecode_id'], ['profiles.breathecode_id'], ),
     sa.ForeignKeyConstraint(['questionnarie_id'], ['teacher_questionnaries.id'], ),
     sa.ForeignKeyConstraint(['teacher_user'], ['teacher_users.id'], ),
     sa.ForeignKeyConstraint(['weaknessQuestion_id'], ['weakness_questions.id'], ),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('breathecodeID'),
+    sa.UniqueConstraint('breathecode_id'),
     sa.UniqueConstraint('questionnarie_id'),
     sa.UniqueConstraint('teacher_user'),
     sa.UniqueConstraint('weaknessQuestion_id')
