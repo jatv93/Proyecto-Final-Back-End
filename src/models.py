@@ -142,8 +142,11 @@ class StudentUser(db.Model):
 class Profile(db.Model):
     __tablename__ = 'profiles'
     id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, db.ForeignKey('student_users.id'), unique=True, nullable=False)
-    breathecodeID = db.Column(db.String(100), unique=True, nullable=False)
+    student_id = db.Column(db.Integer, db.ForeignKey('student_users.id'), nullable=False)
+    breathecode_id = db.Column(db.String(100), unique=True, nullable=False)
+    name = db.Column(db.String(120), unique=False, default="")
+    lastName = db.Column(db.String(120), unique=False, default="")
+    email = db.Column(db.String(120), unique=True, nullable=False)
     size = db.Column(db.String(20), unique=False, nullable=False)
     address = db.Column(db.String(200), unique=False, nullable=False)
     phone = db.Column(db.String(120), unique=False, nullable=False)
@@ -156,19 +159,21 @@ class Profile(db.Model):
     invoices = db.relationship('Invoice', backref='invoices', lazy=True)
 
     def __repr__(self):
-        return f"profile('{self.breathecodeID}', '{self.size}', '{self.address}','{self.phone}', '{self.cohort}', '{self.rut}')"
+        return f"profile('{self.breathecode_id}', '{self.size}', '{self.address}','{self.phone}', '{self.cohort}', '{self.rut}')"
 
     def serialize(self):
         return {
             "id": self.id,
-            "breathecodeID": self.breathecodeID,
+            "breathecode_id": self.breathecode_id,
+            "student_id": self.student_id,
             "size": self.size,
             "address": self.address,
             "phone": self.phone,
             "cohort": self.cohort,
             "rut": self.rut,
-            "enrrollment_agreement": self.agreement.serialize
-            
+            "name": self.name,
+            "lastName": self.lastName,
+            "email": self.email
         }
 
     def save(self):
@@ -186,19 +191,16 @@ class EnrrollmentAgreement(db.Model):
     __tablename__ = 'enrrollment_agreements'
     id = db.Column(db.Integer, primary_key=True)
     urlPDF = db.Column(db.String(200), unique=False, nullable=False)
-    breathecodeID = db.Column(db.Integer, db.ForeignKey('profiles.breathecodeID'), unique=True, nullable=False)
-
+    breathecode_id = db.Column(db.Integer, db.ForeignKey('profiles.breathecode_id'), unique=True, nullable=False)
 
     def __repr__(self):
-        return f"agreement('{self.urlPDF}', '{self.breathecodeID}')"
-
+        return f"agreement('{self.urlPDF}', '{self.breathecode_id}')"
 
     def serialize(self):
         return {
             "id": self.id,
             "urlPDF": self.urlPDF,
-            "breathecodeID": self.breathecodeID
-          
+            "breathecode_id": self.agreement.serialize() 
         }
 
     def save(self):
@@ -350,16 +352,16 @@ class CreditNote(db.Model):
 class JobProfile(db.Model):
     __tablename__ = 'job_profiles'
     id = db.Column(db.Integer, primary_key=True)
-    breathecodeID = db.Column(db.Integer, db.ForeignKey('profiles.breathecodeID'), unique=True, nullable=False)
+    breathecode_id = db.Column(db.Integer, db.ForeignKey('profiles.breathecode_id'), unique=True, nullable=False)
     urlPDF = db.Column(db.String(200), unique=False, nullable=False)
     
     def __repr__(self):
-        return f"payment('{self.breathecodeID}', '{self.urlPDF}')"
+        return f"payment('{self.breathecode_id}', '{self.urlPDF}')"
 
     def serialize(self):
         return {
             "id": self.id,
-            "breathecodeID": self.breathecodeID,
+            "breathecode_id": self.breathecode_id,
             "urlPDF": self.urlPDF       
         }
 
@@ -530,7 +532,7 @@ class TeacherStrengthAnswer(db.Model):
     strenghtQuestion_id = db.Column(db.Integer, db.ForeignKey('strength_questions.id'), unique=True, nullable=False)
     answer = db.Column(db.String(200), unique=False, nullable=False)
     teacher_user = db.Column(db.Integer, db.ForeignKey('teacher_users.id'), unique=True, nullable=False)
-    breathecodeID = db.Column(db.Integer, db.ForeignKey('profiles.breathecodeID'), unique=True, nullable=False)
+    breathecode_id = db.Column(db.Integer, db.ForeignKey('profiles.breathecode_id'), unique=True, nullable=False)
     date = db.Column(db.DateTime, default=datetime.utcnow)
     questionnarie_id = db.Column(db.Integer, db.ForeignKey('teacher_questionnaries.id'), unique=True, nullable=False)
     
@@ -543,7 +545,7 @@ class TeacherStrengthAnswer(db.Model):
             "questionnarie_id": self.questionnarie_id,
             "answer": self.answer,
             "teacher_user": self.teacher_user,
-            "breathecodeID": self.breathecodeID,
+            "breathecode_id": self.breathecode_id,
             "date": self.date
         }
 
@@ -564,7 +566,7 @@ class TeacherWeaknessAnswer(db.Model):
     weaknessQuestion_id = db.Column(db.Integer, db.ForeignKey('weakness_questions.id'), unique=True, nullable=False)
     answer = db.Column(db.String(200), unique=False, nullable=False)
     teacher_user = db.Column(db.Integer, db.ForeignKey('teacher_users.id'), unique=True, nullable=False)
-    breathecodeID = db.Column(db.Integer, db.ForeignKey('profiles.breathecodeID'), unique=True, nullable=False)
+    breathecode_id = db.Column(db.Integer, db.ForeignKey('profiles.breathecode_id'), unique=True, nullable=False)
     date = db.Column(db.DateTime, default=datetime.utcnow)
     questionnarie_id = db.Column(db.Integer, db.ForeignKey('teacher_questionnaries.id'), unique=True, nullable=False)
     
@@ -577,7 +579,7 @@ class TeacherWeaknessAnswer(db.Model):
             "questionnarie_id": self.questionnarie_id,
             "answer": self.answer,
             "teacher_user": self.teacher_user,
-            "breathecodeID": self.breathecodeID,
+            "breathecode_id": self.breathecode_id,
             "date": self.date
         }
 
@@ -598,7 +600,7 @@ class TeacherProjectionAnswer(db.Model):
     projectionQuestion_id = db.Column(db.Integer, db.ForeignKey('projection_questions.id'), unique=True, nullable=False)
     answer = db.Column(db.String(200), unique=False, nullable=False)
     teacher_user = db.Column(db.Integer, db.ForeignKey('teacher_users.id'), unique=True, nullable=False)
-    breathecodeID = db.Column(db.Integer, db.ForeignKey('profiles.breathecodeID'), unique=True, nullable=False)
+    breathecode_id = db.Column(db.Integer, db.ForeignKey('profiles.breathecode_id'), unique=True, nullable=False)
     date = db.Column(db.DateTime, default=datetime.utcnow)
     questionnarie_id = db.Column(db.Integer, db.ForeignKey('teacher_questionnaries.id'), unique=True, nullable=False)
     
@@ -611,7 +613,7 @@ class TeacherProjectionAnswer(db.Model):
             "questionnarie_id": self.questionnarie_id,
             "answer": self.answer,
             "teacher_user": self.teacher_user,
-            "breathecodeID": self.breathecodeID,
+            "breathecode_id": self.breathecode_id,
             "date": self.date
         }
 
@@ -660,7 +662,7 @@ class StudentQuestion(db.Model):
     questionnarie_id = db.Column(db.Integer, db.ForeignKey('student_questionnaries.id'), unique=True, nullable=False)
     question = db.Column(db.String(200), unique=False, nullable=False)
     status = db.Column(db.String(120), unique=False, nullable=False)
-    breathecodeID = db.Column(db.String(100), unique=True, nullable=False)
+    breathecode_id = db.Column(db.String(100), unique=True, nullable=False)
     
     def __repr__(self):
         return f"student_questions('{self.questionnarie_id}', '{self.question}' , '{self.status}', '{self.breathecode_id}')"
@@ -671,7 +673,7 @@ class StudentQuestion(db.Model):
             "questionnarie_id": self.questionnarie_id,
             "question": self.question,
             "status": self.status,
-            "breathecode_id": self.breathecodeID
+            "breathecode_id": self.breathecode_id
         }
 
     def save(self):
@@ -691,7 +693,7 @@ class StudentAnswer(db.Model):
     question_id = db.Column(db.Integer, db.ForeignKey('student_questions.id'), unique=True, nullable=False)
     answer = db.Column(db.String(200), unique=False, nullable=False)
     teacher_user = db.Column(db.Integer, db.ForeignKey('teacher_users.id'), unique=True, nullable=False)
-    breathecodeID = db.Column(db.Integer, db.ForeignKey('profiles.breathecodeID'), unique=True, nullable=False)
+    breathecode_id = db.Column(db.Integer, db.ForeignKey('profiles.breathecode_id'), unique=True, nullable=False)
     date = db.Column(db.DateTime, default=datetime.utcnow)
     questionnarie_id = db.Column(db.Integer, db.ForeignKey('student_questionnaries.id'), unique=True, nullable=False)
     
@@ -704,7 +706,7 @@ class StudentAnswer(db.Model):
             "questionnarie_id": self.questionnarie_id,
             "answer": self.answer,
             "teacher_user": self.teacher_user,
-            "breathecodeID": self.breathecodeID,
+            "breathecode_id": self.breathecode_id,
             "date": self.date
         }
 
