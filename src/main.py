@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, Role, StaffUser, TeacherUser, StudentUser, Profile, EnrrollmentAgreement
+from models import db, Role, StaffUser, TeacherUser, StudentUser, Profile, EnrrollmentAgreement, Financing, StrengthQuestion
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended.jwt_manager import JWTManager
 from flask_jwt_extended.utils import create_access_token, get_jwt_identity
@@ -356,12 +356,12 @@ def profiles(id = None):
 
         return jsonify({"success": "Profile Register Successfully"}), 200
 
-@app.route('/enrrollment_agreements', methods=['GET', 'POST'])
-@app.route('/enrrollment_agreements/<int:id>', methods=['GET', 'PUT', 'DELETE'])
-def enrrollment_agreements(id = None):
+@app.route('/enrrollment_agreements', methods=['GET'])
+@app.route('/enrrollment_agreements/<int:breathecode_id>', methods=['GET', 'PUT', 'DELETE', 'POST'])
+def enrrollment_agreements(breathecode_id = None):
     if request.method == 'GET':
-        if id is not None:
-            agreement = EnrrollmentAgreement.query.get(id) # None por defecto si no consigue el registro
+        if breathecode_id is not None:
+            agreement = EnrrollmentAgreement.query.get(breathecode_id) # None por defecto si no consigue el registro
             if agreement:
                 return jsonify(agreement.serialize()), 200
             return jsonify({"msg": "Enrrollment Agreement not found"}), 404
@@ -374,11 +374,13 @@ def enrrollment_agreements(id = None):
 
         urlPDF = request.json.get("urlPDF", None)
         breathecode_id = request.json.get("breathecode_id",None)
+ 
 
         if not urlPDF:
             return jsonify({"msg": "URL is required"}), 400
         if not breathecode_id:
             return jsonify({"msg": "Breathecode ID is required"}), 400
+
 
         agreement = EnrrollmentAgreement.query.filter_by(breathecode_id=breathecode_id).first()
         if agreement:
@@ -391,6 +393,71 @@ def enrrollment_agreements(id = None):
         agreement.save()
 
         return jsonify({"success": "Enrrollment Agreement Register Successfully"}), 200
+
+@app.route('/financing_agreements', methods=['GET', 'POST'])
+@app.route('/financing_agreements/<int:rut>', methods=['GET', 'PUT', 'DELETE'])
+def financing_agreements(rut = None):
+    if request.method == 'GET':
+        if rut is not None:
+            financing = Financing.query.get(rut) # None por defecto si no consigue el registro
+            if financing:
+                return jsonify(financing.serialize()), 200
+            return jsonify({"msg": "Financing Agreement not found"}), 404
+        else:
+            financing = Financing.query.all()
+            financing = list(map(lambda financing: financing.serialize(), financing))
+            return jsonify(financing), 200
+
+    if request.method == 'POST':
+
+        urlPDF = request.json.get("urlPDF", None)
+        months = request.json.get("months", None)
+        monthlyFee = request.json.get("monthlyFee",None)
+        rut = request.json.get("rut", None)
+       
+        
+        if not urlPDF:
+            return jsonify({"msg": "URL is required"}), 400
+        if not months:
+            return jsonify({"msg": "Month is required"}), 400
+        if not monthlyFee:
+            return jsonify({"msg": "Monthly Fee is required"}), 400
+        if not rut:
+            return jsonify({"msg": "RUT is required"}), 400
+        
+
+        financing = Financing.query.filter_by(rut=rut).first()
+        if financing:
+            return jsonify({"msg": "Financing Agreement already exists"}), 400
+        
+        financing = Financing()
+        financing.urlPDF = urlPDF
+        financing.months = months
+        financing.monthlyFee = monthlyFee
+        financing.rut = rut
+
+        financing.save()
+
+        return jsonify({"success": "Financing Agreement Register Successfully"}), 200
+
+
+@app.route('/strenght_questions', methods=['GET', 'POST'])
+@app.route('/strenght_questions/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+def strenght_question(id = None):
+    if request.method == 'GET':
+        if id is not None:
+            strength = StrengthQuestion.query.get(id) # None por defecto si no consigue el registro
+            if strength:
+                return jsonify(strength.serialize()), 200
+            return jsonify({"msg": "Strength Question not found"}), 404
+        else:
+            strength = StrengthQuestion.query.all()
+            strength = list(map(lambda strength: strength.serialize(), strength))
+            return jsonify(strength), 200
+
+
+
+
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
