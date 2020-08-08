@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 537262974a35
+Revision ID: 39ecbe0fa5a8
 Revises: 
-Create Date: 2020-08-04 22:28:54.867966
+Create Date: 2020-08-08 21:02:41.138419
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '537262974a35'
+revision = '39ecbe0fa5a8'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -63,7 +63,7 @@ def upgrade():
     op.create_table('profiles',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('student_id', sa.Integer(), nullable=False),
-    sa.Column('breathecode_id', sa.String(length=100), nullable=False),
+    sa.Column('breathecode_id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=120), nullable=True),
     sa.Column('lastName', sa.String(length=120), nullable=True),
     sa.Column('email', sa.String(length=120), nullable=False),
@@ -114,10 +114,10 @@ def upgrade():
     )
     op.create_table('financing_agreements',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('months', sa.String(length=100), nullable=False),
+    sa.Column('months', sa.Integer(), nullable=False),
     sa.Column('monthlyFee', sa.String(length=100), nullable=False),
     sa.Column('date', sa.DateTime(), nullable=True),
-    sa.Column('rut', sa.Integer(), nullable=False),
+    sa.Column('rut', sa.String(length=100), nullable=False),
     sa.Column('urlPDF', sa.String(length=200), nullable=False),
     sa.ForeignKeyConstraint(['rut'], ['profiles.rut'], ),
     sa.PrimaryKeyConstraint('id'),
@@ -157,7 +157,7 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('questionnarie_id', sa.Integer(), nullable=False),
     sa.Column('question', sa.String(length=200), nullable=False),
-    sa.Column('status', sa.String(length=120), nullable=False),
+    sa.Column('is_active', sa.Boolean(), nullable=True),
     sa.ForeignKeyConstraint(['questionnarie_id'], ['teacher_questionnaries.id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('questionnarie_id')
@@ -174,10 +174,9 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('questionnarie_id', sa.Integer(), nullable=False),
     sa.Column('question', sa.String(length=200), nullable=False),
-    sa.Column('status', sa.String(length=120), nullable=False),
+    sa.Column('is_active', sa.Boolean(), nullable=True),
     sa.ForeignKeyConstraint(['questionnarie_id'], ['teacher_questionnaries.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('questionnarie_id')
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('student_questions',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -194,7 +193,7 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('questionnarie_id', sa.Integer(), nullable=False),
     sa.Column('question', sa.String(length=200), nullable=False),
-    sa.Column('status', sa.String(length=120), nullable=False),
+    sa.Column('is_active', sa.Boolean(), nullable=True),
     sa.ForeignKeyConstraint(['questionnarie_id'], ['teacher_questionnaries.id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('questionnarie_id')
@@ -237,7 +236,7 @@ def upgrade():
     )
     op.create_table('teacher_strength_answers',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('strenghtQuestion_id', sa.Integer(), nullable=False),
+    sa.Column('strengthQuestion_id', sa.Integer(), nullable=False),
     sa.Column('answer', sa.String(length=200), nullable=False),
     sa.Column('teacher_user', sa.Integer(), nullable=False),
     sa.Column('breathecode_id', sa.Integer(), nullable=False),
@@ -245,12 +244,12 @@ def upgrade():
     sa.Column('questionnarie_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['breathecode_id'], ['profiles.breathecode_id'], ),
     sa.ForeignKeyConstraint(['questionnarie_id'], ['teacher_questionnaries.id'], ),
-    sa.ForeignKeyConstraint(['strenghtQuestion_id'], ['strength_questions.id'], ),
+    sa.ForeignKeyConstraint(['strengthQuestion_id'], ['strength_questions.id'], ),
     sa.ForeignKeyConstraint(['teacher_user'], ['teacher_users.id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('breathecode_id'),
     sa.UniqueConstraint('questionnarie_id'),
-    sa.UniqueConstraint('strenghtQuestion_id'),
+    sa.UniqueConstraint('strengthQuestion_id'),
     sa.UniqueConstraint('teacher_user')
     )
     op.create_table('teacher_weakness_answers',
