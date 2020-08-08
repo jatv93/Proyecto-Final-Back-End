@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, Role, StaffUser, TeacherUser, StudentUser, Profile, EnrrollmentAgreement, Financing, StrengthQuestion
+from models import db, Role, StaffUser, TeacherUser, StudentUser, Profile, EnrrollmentAgreement, Financing, TeacherQuestionnarie, StrengthQuestion
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended.jwt_manager import JWTManager
 from flask_jwt_extended.utils import create_access_token, get_jwt_identity
@@ -361,7 +361,7 @@ def profiles(id = None):
 def enrrollment_agreements(breathecode_id = None):
     if request.method == 'GET':
         if breathecode_id is not None:
-            agreement = EnrrollmentAgreement.query.get(breathecode_id) # None por defecto si no consigue el registro
+            agreement = EnrrollmentAgreement.query.filter_by(breathecode_id=breathecode_id).first() # None por defecto si no consigue el registro
             if agreement:
                 return jsonify(agreement.serialize()), 200
             return jsonify({"msg": "Enrrollment Agreement not found"}), 404
@@ -441,8 +441,42 @@ def financing_agreements(rut = None):
         return jsonify({"success": "Financing Agreement Register Successfully"}), 200
 
 
-@app.route('/strenght_questions', methods=['GET', 'POST'])
-@app.route('/strenght_questions/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+@app.route('/teacher_questionnaries', methods=['GET', 'POST'])
+@app.route('/teacher_questionnaries/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+def teacher_questionnaries(id = None):
+    if request.method == 'GET':
+        if id is not None:
+            questionnarie = TeacherQuestionnarie.query.get(id) # None por defecto si no consigue el registro
+            if questionnarie:
+                return jsonify(questionnarie.serialize()), 200
+            return jsonify({"msg": "Questionarie not found"}), 404
+        else:
+            questionnarie = TeacherQuestionnarie.query.all()
+            questionnarie = list(map(lambda questionnarie: questionnarie.serialize(), questionnarie))
+            return jsonify(questionnarie), 200
+
+    if request.method == 'POST':
+
+        questionnarie_details = request.json.get("questionnarie_details", None)
+       
+        if not questionnarie_details:
+            return jsonify({"msg": "Questionnarie Detail is required"}), 400
+        
+        questionnarie = TeacherQuestionnarie.query.filter_by(id=id).first()
+        if questionnarie:
+            return jsonify({"msg": "Questionnarie already exists"}), 400
+        
+        questionnarie = TeacherQuestionnarie()
+        questionnarie.questionnarie_details = questionnarie_details
+        questionnarie.staff_user = "1"
+
+        questionnarie.save()
+
+        return jsonify({"success": "Questionnarie Register Successfully"}), 200
+
+
+@app.route('/strength_questions', methods=['GET', 'POST'])
+@app.route('/strength_questions/<int:id>', methods=['GET', 'PUT', 'DELETE'])
 def strenght_question(id = None):
     if request.method == 'GET':
         if id is not None:
@@ -455,8 +489,24 @@ def strenght_question(id = None):
             strength = list(map(lambda strength: strength.serialize(), strength))
             return jsonify(strength), 200
 
+    if request.method == 'POST':
 
+        question = request.json.get("question", None)
+       
+        if not question:
+            return jsonify({"msg": "Question is required"}), 400
+        
+        strength = StrengthQuestion.query.filter_by(id=id).first()
+        if strength:
+            return jsonify({"msg": "Question already exists"}), 400
+        
+        strength = StrengthQuestion()
+        strength.question = question
+        strength.questionnarie_id = request.json.get("questionnarie_id", None)
 
+        strength.save()
+
+        return jsonify({"success": "Strength Question Register Successfully"}), 200
 
 
 # this only runs if `$ python src/main.py` is executed

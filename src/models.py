@@ -42,6 +42,7 @@ class StaffUser(db.Model):
     password = db.Column(db.String(80), unique=False, nullable=False)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), nullable=False)
     is_active = db.Column(db.Boolean(), default=True)
+    teacher_questionnarie = db.relationship('TeacherQuestionnarie', backref='TeacherQuestionnarie', lazy=True)
 
     def __repr__(self):
         return f"staffUser('{self.name}', '{self.lastName}', '{self.email}','{self.password}')"
@@ -419,16 +420,14 @@ class TeacherQuestionnarie(db.Model):
     projection_question = db.relationship('ProjectionQuestion', backref='projection', lazy=True)
 
     def __repr__(self):
-        return f"teacher_questionnaries('{self.staff_id}', '{self.questionnarie_details}', '{self.strength_question}' , '{self.weakness_question}', '{self.projection_question}')"
+        return f"teacher_questionnaries('{self.staff_id}', '{self.strength_question}' , '{self.weakness_question}', '{self.projection_question}')"
 
     def serialize(self):
         return {
             "id": self.id,
-            "staff_id": self.staffUser.serialize,
-            "questionnarie_details": self.questionnarie_details,
-            "strength_question": self.strength.serialize,
-            "weakness_question": self.weakness.serialize,
-            "projection_question": self.projection.serialize
+            "staff_id": self.staff_user,
+            "questionnarie_details": self.questionnarie_details
+            
         }
 
     def save(self):
@@ -445,20 +444,17 @@ class TeacherQuestionnarie(db.Model):
 class StrengthQuestion(db.Model):
     __tablename__ = 'strength_questions'
     id = db.Column(db.Integer, primary_key=True)
-    questionnarie_id = db.Column(db.Integer, db.ForeignKey('teacher_questionnaries.id'), unique=True, nullable=False)
+    questionnarie_id = db.Column(db.Integer, db.ForeignKey('teacher_questionnaries.id'), unique=False, nullable=False)
     question = db.Column(db.String(200), unique=False, nullable=False)
-    status = db.Column(db.String(120), unique=False, nullable=False)
-    
-    def __repr__(self):
-        return f"strength_questions('{self.questionnarie_id}', '{self.question}', '{self.status}')"
+    is_active = db.Column(db.Boolean(), default=True)
 
     def serialize(self):
 
         return {
             "id": self.id,
-            "questionnarie_id": self.questionnarie_id,
             "question": self.question,
-            "status": self.status
+            "questionnarie_id": self.questionnarie_id
+        
         }
 
     def save(self):
@@ -477,17 +473,16 @@ class WeaknessQuestion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     questionnarie_id = db.Column(db.Integer, db.ForeignKey('teacher_questionnaries.id'), unique=True, nullable=False)
     question = db.Column(db.String(200), unique=False, nullable=False)
-    status = db.Column(db.String(120), unique=False, nullable=False)
+    is_active = db.Column(db.Boolean(), default=True)
     
     def __repr__(self):
-        return f"weakness_questions('{self.questionnarie_id}', '{self.question}', '{self.status}')"
+        return f"weakness_questions('{self.questionnarie_id}', '{self.question}')"
 
     def serialize(self):
         return {
             "id": self.id,
             "questionnarie_id": self.questionnarie_id,
-            "question": self.question,
-            "status": self.status
+            "question": self.question
             
         }
 
@@ -507,17 +502,16 @@ class ProjectionQuestion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     questionnarie_id = db.Column(db.Integer, db.ForeignKey('teacher_questionnaries.id'), unique=True, nullable=False)
     question = db.Column(db.String(200), unique=False, nullable=False)
-    status = db.Column(db.String(120), unique=False, nullable=False)
+    is_active = db.Column(db.Boolean(), default=True)
     
     def __repr__(self):
-        return f"projection_questions('{self.questionnarie_id}', '{self.question}', '{self.status}')"
+        return f"projection_questions('{self.questionnarie_id}', '{self.question}')"
 
     def serialize(self):
         return {
             "id": self.id,
             "questionnarie_id": self.questionnarie_id,
-            "question": self.question,
-            "status": self.status
+            "question": self.question
             
         }
 

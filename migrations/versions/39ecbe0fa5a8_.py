@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: aa009b527281
+Revision ID: 39ecbe0fa5a8
 Revises: 
-Create Date: 2020-08-07 02:19:33.707787
+Create Date: 2020-08-08 21:02:41.138419
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'aa009b527281'
+revision = '39ecbe0fa5a8'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -157,7 +157,7 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('questionnarie_id', sa.Integer(), nullable=False),
     sa.Column('question', sa.String(length=200), nullable=False),
-    sa.Column('status', sa.String(length=120), nullable=False),
+    sa.Column('is_active', sa.Boolean(), nullable=True),
     sa.ForeignKeyConstraint(['questionnarie_id'], ['teacher_questionnaries.id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('questionnarie_id')
@@ -174,10 +174,9 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('questionnarie_id', sa.Integer(), nullable=False),
     sa.Column('question', sa.String(length=200), nullable=False),
-    sa.Column('status', sa.String(length=120), nullable=False),
+    sa.Column('is_active', sa.Boolean(), nullable=True),
     sa.ForeignKeyConstraint(['questionnarie_id'], ['teacher_questionnaries.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('questionnarie_id')
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('student_questions',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -194,7 +193,7 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('questionnarie_id', sa.Integer(), nullable=False),
     sa.Column('question', sa.String(length=200), nullable=False),
-    sa.Column('status', sa.String(length=120), nullable=False),
+    sa.Column('is_active', sa.Boolean(), nullable=True),
     sa.ForeignKeyConstraint(['questionnarie_id'], ['teacher_questionnaries.id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('questionnarie_id')
