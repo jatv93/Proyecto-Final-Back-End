@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 39ecbe0fa5a8
+Revision ID: 39812126d85b
 Revises: 
-Create Date: 2020-08-08 21:02:41.138419
+Create Date: 2020-08-15 15:37:58.107703
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '39ecbe0fa5a8'
+revision = '39812126d85b'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -81,18 +81,18 @@ def upgrade():
     op.create_table('student_questionnaries',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('staff_user', sa.Integer(), nullable=False),
+    sa.Column('name', sa.String(length=120), nullable=True),
     sa.Column('questionnarie_details', sa.String(length=200), nullable=False),
     sa.ForeignKeyConstraint(['staff_user'], ['staff_users.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('staff_user')
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('teacher_questionnaries',
     sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('name', sa.String(length=120), nullable=True),
     sa.Column('staff_user', sa.Integer(), nullable=False),
     sa.Column('questionnarie_details', sa.String(length=200), nullable=False),
     sa.ForeignKeyConstraint(['staff_user'], ['staff_users.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('staff_user')
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('credit_notes',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -153,15 +153,6 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('rut')
     )
-    op.create_table('projection_questions',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('questionnarie_id', sa.Integer(), nullable=False),
-    sa.Column('question', sa.String(length=200), nullable=False),
-    sa.Column('is_active', sa.Boolean(), nullable=True),
-    sa.ForeignKeyConstraint(['questionnarie_id'], ['teacher_questionnaries.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('questionnarie_id')
-    )
     op.create_table('ruts',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('rut_id', sa.Integer(), nullable=False),
@@ -170,33 +161,21 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('rut_id')
     )
-    op.create_table('strength_questions',
+    op.create_table('student_questions',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('questionnarie_id', sa.Integer(), nullable=False),
+    sa.Column('question', sa.String(length=200), nullable=False),
+    sa.Column('is_active', sa.Boolean(), nullable=True),
+    sa.ForeignKeyConstraint(['questionnarie_id'], ['student_questionnaries.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('teacher_questions',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('questionnarie_id', sa.Integer(), nullable=False),
     sa.Column('question', sa.String(length=200), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=True),
     sa.ForeignKeyConstraint(['questionnarie_id'], ['teacher_questionnaries.id'], ),
     sa.PrimaryKeyConstraint('id')
-    )
-    op.create_table('student_questions',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('questionnarie_id', sa.Integer(), nullable=False),
-    sa.Column('question', sa.String(length=200), nullable=False),
-    sa.Column('status', sa.String(length=120), nullable=False),
-    sa.Column('breathecode_id', sa.String(length=100), nullable=False),
-    sa.ForeignKeyConstraint(['questionnarie_id'], ['student_questionnaries.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('breathecode_id'),
-    sa.UniqueConstraint('questionnarie_id')
-    )
-    op.create_table('weakness_questions',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('questionnarie_id', sa.Integer(), nullable=False),
-    sa.Column('question', sa.String(length=200), nullable=False),
-    sa.Column('is_active', sa.Boolean(), nullable=True),
-    sa.ForeignKeyConstraint(['questionnarie_id'], ['teacher_questionnaries.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('questionnarie_id')
     )
     op.create_table('student_answers',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -216,74 +195,34 @@ def upgrade():
     sa.UniqueConstraint('questionnarie_id'),
     sa.UniqueConstraint('teacher_user')
     )
-    op.create_table('teacher_projection_answers',
+    op.create_table('teacher_answers',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('projectionQuestion_id', sa.Integer(), nullable=False),
+    sa.Column('teacher_question_id', sa.Integer(), nullable=False),
     sa.Column('answer', sa.String(length=200), nullable=False),
     sa.Column('teacher_user', sa.Integer(), nullable=False),
     sa.Column('breathecode_id', sa.Integer(), nullable=False),
     sa.Column('date', sa.DateTime(), nullable=True),
     sa.Column('questionnarie_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['breathecode_id'], ['profiles.breathecode_id'], ),
-    sa.ForeignKeyConstraint(['projectionQuestion_id'], ['projection_questions.id'], ),
     sa.ForeignKeyConstraint(['questionnarie_id'], ['teacher_questionnaries.id'], ),
+    sa.ForeignKeyConstraint(['teacher_question_id'], ['teacher_questions.id'], ),
     sa.ForeignKeyConstraint(['teacher_user'], ['teacher_users.id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('breathecode_id'),
-    sa.UniqueConstraint('projectionQuestion_id'),
     sa.UniqueConstraint('questionnarie_id'),
+    sa.UniqueConstraint('teacher_question_id'),
     sa.UniqueConstraint('teacher_user')
-    )
-    op.create_table('teacher_strength_answers',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('strengthQuestion_id', sa.Integer(), nullable=False),
-    sa.Column('answer', sa.String(length=200), nullable=False),
-    sa.Column('teacher_user', sa.Integer(), nullable=False),
-    sa.Column('breathecode_id', sa.Integer(), nullable=False),
-    sa.Column('date', sa.DateTime(), nullable=True),
-    sa.Column('questionnarie_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['breathecode_id'], ['profiles.breathecode_id'], ),
-    sa.ForeignKeyConstraint(['questionnarie_id'], ['teacher_questionnaries.id'], ),
-    sa.ForeignKeyConstraint(['strengthQuestion_id'], ['strength_questions.id'], ),
-    sa.ForeignKeyConstraint(['teacher_user'], ['teacher_users.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('breathecode_id'),
-    sa.UniqueConstraint('questionnarie_id'),
-    sa.UniqueConstraint('strengthQuestion_id'),
-    sa.UniqueConstraint('teacher_user')
-    )
-    op.create_table('teacher_weakness_answers',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('weaknessQuestion_id', sa.Integer(), nullable=False),
-    sa.Column('answer', sa.String(length=200), nullable=False),
-    sa.Column('teacher_user', sa.Integer(), nullable=False),
-    sa.Column('breathecode_id', sa.Integer(), nullable=False),
-    sa.Column('date', sa.DateTime(), nullable=True),
-    sa.Column('questionnarie_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['breathecode_id'], ['profiles.breathecode_id'], ),
-    sa.ForeignKeyConstraint(['questionnarie_id'], ['teacher_questionnaries.id'], ),
-    sa.ForeignKeyConstraint(['teacher_user'], ['teacher_users.id'], ),
-    sa.ForeignKeyConstraint(['weaknessQuestion_id'], ['weakness_questions.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('breathecode_id'),
-    sa.UniqueConstraint('questionnarie_id'),
-    sa.UniqueConstraint('teacher_user'),
-    sa.UniqueConstraint('weaknessQuestion_id')
     )
     # ### end Alembic commands ###
 
 
 def downgrade():
     # ### commands auto generated by Alembic - please adjust! ###
-    op.drop_table('teacher_weakness_answers')
-    op.drop_table('teacher_strength_answers')
-    op.drop_table('teacher_projection_answers')
+    op.drop_table('teacher_answers')
     op.drop_table('student_answers')
-    op.drop_table('weakness_questions')
+    op.drop_table('teacher_questions')
     op.drop_table('student_questions')
-    op.drop_table('strength_questions')
     op.drop_table('ruts')
-    op.drop_table('projection_questions')
     op.drop_table('payments')
     op.drop_table('job_profiles')
     op.drop_table('invoices')

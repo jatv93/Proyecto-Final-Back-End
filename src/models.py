@@ -43,6 +43,7 @@ class StaffUser(db.Model):
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), nullable=False)
     is_active = db.Column(db.Boolean(), default=True)
     teacher_questionnarie = db.relationship('TeacherQuestionnarie', backref='TeacherQuestionnarie', lazy=True)
+    student_questionnarie = db.relationship('StudentQuestionnarie', backref='StudentQuestionnarie', lazy=True)
 
     def __repr__(self):
         return f"staffUser('{self.name}', '{self.lastName}', '{self.email}','{self.password}')"
@@ -176,8 +177,7 @@ class Profile(db.Model):
             "name": self.name,
             "lastName": self.lastName,
             "email": self.email,
-            "enrrollment": self.enrrollment_agreement.serialize(),
-            "financing": self.financing_agreement.serialize(),
+            
             
         }
 
@@ -413,19 +413,16 @@ class Rut(db.Model):
 class TeacherQuestionnarie(db.Model):
     __tablename__ = 'teacher_questionnaries'
     id = db.Column(db.Integer, primary_key=True)
-    staff_user = db.Column(db.Integer, db.ForeignKey('staff_users.id'), unique=True, nullable=False)
+    name = db.Column(db.String(120), unique=False, default="")
+    staff_user = db.Column(db.Integer, db.ForeignKey('staff_users.id'), unique=False, nullable=False)
     questionnarie_details = db.Column(db.String(200), unique=False, nullable=False)
-    strength_question = db.relationship('StrengthQuestion', backref='strength', lazy=True)
-    weakness_question = db.relationship('WeaknessQuestion', backref='weakness', lazy=True)
-    projection_question = db.relationship('ProjectionQuestion', backref='projection', lazy=True)
-
-    def __repr__(self):
-        return f"teacher_questionnaries('{self.staff_id}', '{self.strength_question}' , '{self.weakness_question}', '{self.projection_question}')"
-
+    teacher_question = db.relationship('TeacherQuestion', backref='questions', lazy=True, cascade="all, delete-orphan")
+    
     def serialize(self):
         return {
             "id": self.id,
-            "staff_id": self.staff_user,
+            "staff_user": self.staff_user,
+            "name": self.name,
             "questionnarie_details": self.questionnarie_details
             
         }
@@ -441,8 +438,8 @@ class TeacherQuestionnarie(db.Model):
         db.session.delete(self)
         db.session.commit()
 
-class StrengthQuestion(db.Model):
-    __tablename__ = 'strength_questions'
+class TeacherQuestion(db.Model):
+    __tablename__ = 'teacher_questions'
     id = db.Column(db.Integer, primary_key=True)
     questionnarie_id = db.Column(db.Integer, db.ForeignKey('teacher_questionnaries.id'), unique=False, nullable=False)
     question = db.Column(db.String(200), unique=False, nullable=False)
@@ -454,7 +451,6 @@ class StrengthQuestion(db.Model):
             "id": self.id,
             "question": self.question,
             "questionnarie_id": self.questionnarie_id
-        
         }
 
     def save(self):
@@ -468,144 +464,15 @@ class StrengthQuestion(db.Model):
         db.session.delete(self)
         db.session.commit()
 
-class WeaknessQuestion(db.Model):
-    __tablename__ = 'weakness_questions'
+class TeacherAnswer(db.Model):
+    __tablename__ = 'teacher_answers'
     id = db.Column(db.Integer, primary_key=True)
-    questionnarie_id = db.Column(db.Integer, db.ForeignKey('teacher_questionnaries.id'), unique=True, nullable=False)
-    question = db.Column(db.String(200), unique=False, nullable=False)
-    is_active = db.Column(db.Boolean(), default=True)
-    
-    def __repr__(self):
-        return f"weakness_questions('{self.questionnarie_id}', '{self.question}')"
-
-    def serialize(self):
-        return {
-            "id": self.id,
-            "questionnarie_id": self.questionnarie_id,
-            "question": self.question
-            
-        }
-
-    def save(self):
-        db.session.add(self)
-        db.session.commit()
-
-    def update(self):
-        db.session.commit()
-
-    def delete(self):
-        db.session.delete(self)
-        db.session.commit()
-
-class ProjectionQuestion(db.Model):
-    __tablename__ = 'projection_questions'
-    id = db.Column(db.Integer, primary_key=True)
-    questionnarie_id = db.Column(db.Integer, db.ForeignKey('teacher_questionnaries.id'), unique=True, nullable=False)
-    question = db.Column(db.String(200), unique=False, nullable=False)
-    is_active = db.Column(db.Boolean(), default=True)
-    
-    def __repr__(self):
-        return f"projection_questions('{self.questionnarie_id}', '{self.question}')"
-
-    def serialize(self):
-        return {
-            "id": self.id,
-            "questionnarie_id": self.questionnarie_id,
-            "question": self.question
-            
-        }
-
-    def save(self):
-        db.session.add(self)
-        db.session.commit()
-
-    def update(self):
-        db.session.commit()
-
-    def delete(self):
-        db.session.delete(self)
-        db.session.commit()
-
-class TeacherStrengthAnswer(db.Model):
-    __tablename__ = 'teacher_strength_answers'
-    id = db.Column(db.Integer, primary_key=True)
-    strengthQuestion_id = db.Column(db.Integer, db.ForeignKey('strength_questions.id'), unique=True, nullable=False)
+    teacher_question_id = db.Column(db.Integer, db.ForeignKey('teacher_questions.id'), unique=True, nullable=False)
     answer = db.Column(db.String(200), unique=False, nullable=False)
     teacher_user = db.Column(db.Integer, db.ForeignKey('teacher_users.id'), unique=True, nullable=False)
     breathecode_id = db.Column(db.Integer, db.ForeignKey('profiles.breathecode_id'), unique=True, nullable=False)
     date = db.Column(db.DateTime, default=datetime.utcnow)
     questionnarie_id = db.Column(db.Integer, db.ForeignKey('teacher_questionnaries.id'), unique=True, nullable=False)
-    
-    def __repr__(self):
-        return f"teacher_answers('{self.strengthQuestion_id}', '{self.projectionQuestion_id}', '{self.answer}')"
-
-    def serialize(self):
-        return {
-            "id": self.id,
-            "questionnarie_id": self.questionnarie_id,
-            "answer": self.answer,
-            "teacher_user": self.teacher_user,
-            "breathecode_id": self.breathecode_id,
-            "date": self.date
-        }
-
-    def save(self):
-        db.session.add(self)
-        db.session.commit()
-
-    def update(self):
-        db.session.commit()
-
-    def delete(self):
-        db.session.delete(self)
-        db.session.commit()
-
-class TeacherWeaknessAnswer(db.Model):
-    __tablename__ = 'teacher_weakness_answers'
-    id = db.Column(db.Integer, primary_key=True)
-    weaknessQuestion_id = db.Column(db.Integer, db.ForeignKey('weakness_questions.id'), unique=True, nullable=False)
-    answer = db.Column(db.String(200), unique=False, nullable=False)
-    teacher_user = db.Column(db.Integer, db.ForeignKey('teacher_users.id'), unique=True, nullable=False)
-    breathecode_id = db.Column(db.Integer, db.ForeignKey('profiles.breathecode_id'), unique=True, nullable=False)
-    date = db.Column(db.DateTime, default=datetime.utcnow)
-    questionnarie_id = db.Column(db.Integer, db.ForeignKey('teacher_questionnaries.id'), unique=True, nullable=False)
-    
-    def __repr__(self):
-        return f"teacher_answers( '{self.weaknessQuestion_id}','{self.answer}')"
-
-    def serialize(self):
-        return {
-            "id": self.id,
-            "questionnarie_id": self.questionnarie_id,
-            "answer": self.answer,
-            "teacher_user": self.teacher_user,
-            "breathecode_id": self.breathecode_id,
-            "date": self.date
-        }
-
-    def save(self):
-        db.session.add(self)
-        db.session.commit()
-
-    def update(self):
-        db.session.commit()
-
-    def delete(self):
-        db.session.delete(self)
-        db.session.commit()
-
-class TeacherProjectionAnswer(db.Model):
-    __tablename__ = 'teacher_projection_answers'
-    id = db.Column(db.Integer, primary_key=True)
-    projectionQuestion_id = db.Column(db.Integer, db.ForeignKey('projection_questions.id'), unique=True, nullable=False)
-    answer = db.Column(db.String(200), unique=False, nullable=False)
-    teacher_user = db.Column(db.Integer, db.ForeignKey('teacher_users.id'), unique=True, nullable=False)
-    breathecode_id = db.Column(db.Integer, db.ForeignKey('profiles.breathecode_id'), unique=True, nullable=False)
-    date = db.Column(db.DateTime, default=datetime.utcnow)
-    questionnarie_id = db.Column(db.Integer, db.ForeignKey('teacher_questionnaries.id'), unique=True, nullable=False)
-    
-    def __repr__(self):
-        return f"teacher_answers('{self.projectionQuestion_id}', '{self.answer}')"
 
     def serialize(self):
         return {
@@ -631,9 +498,10 @@ class TeacherProjectionAnswer(db.Model):
 class StudentQuestionnarie(db.Model):
     __tablename__ = 'student_questionnaries'
     id = db.Column(db.Integer, primary_key=True)
-    staff_user = db.Column(db.Integer, db.ForeignKey('staff_users.id'), unique=True, nullable=False)
+    staff_user = db.Column(db.Integer, db.ForeignKey('staff_users.id'), unique=False, nullable=False)
+    name = db.Column(db.String(120), unique=False, default="")
     questionnarie_details = db.Column(db.String(200), unique=False, nullable=False)
-       
+    student_question = db.relationship('StudentQuestion', backref='questions', lazy=True)
     
     def __repr__(self):
         return f"student_questionnaries('{self.staff_user}', '{self.questionnarie_details}')"
@@ -642,6 +510,7 @@ class StudentQuestionnarie(db.Model):
         return {
             "id": self.id,
             "staff_user": self.staff_user,
+            "name": self.name,
             "questionnarie_details": self.questionnarie_details
         }
 
@@ -659,21 +528,15 @@ class StudentQuestionnarie(db.Model):
 class StudentQuestion(db.Model):
     __tablename__ = 'student_questions'
     id = db.Column(db.Integer, primary_key=True)
-    questionnarie_id = db.Column(db.Integer, db.ForeignKey('student_questionnaries.id'), unique=True, nullable=False)
+    questionnarie_id = db.Column(db.Integer, db.ForeignKey('student_questionnaries.id'), unique=False, nullable=False)
     question = db.Column(db.String(200), unique=False, nullable=False)
-    status = db.Column(db.String(120), unique=False, nullable=False)
-    breathecode_id = db.Column(db.String(100), unique=True, nullable=False)
-    
-    def __repr__(self):
-        return f"student_questions('{self.questionnarie_id}', '{self.question}' , '{self.status}', '{self.breathecode_id}')"
+    is_active = db.Column(db.Boolean(), default=True)
 
     def serialize(self):
         return {
             "id": self.id,
             "questionnarie_id": self.questionnarie_id,
             "question": self.question,
-            "status": self.status,
-            "breathecode_id": self.breathecode_id
         }
 
     def save(self):
