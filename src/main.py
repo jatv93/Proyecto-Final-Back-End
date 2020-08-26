@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, Role, StaffUser, TeacherUser, StudentUser, Profile, EnrrollmentAgreement, Financing, TeacherQuestionnarie, StrengthQuestion
+from models import db, Role, StaffUser, TeacherUser, StudentUser, Profile, EnrrollmentAgreement, Financing, Payment, Invoice, CreditNote, TeacherQuestionnarie, TeacherQuestion, StudentQuestionnarie, StudentQuestion
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended.jwt_manager import JWTManager
 from flask_jwt_extended.utils import create_access_token, get_jwt_identity
@@ -440,9 +440,151 @@ def financing_agreements(rut = None):
 
         return jsonify({"success": "Financing Agreement Register Successfully"}), 200
 
+@app.route('/payments', methods=['GET', 'POST'])
+@app.route('/payments/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+def payments(id = None):
+    if request.method == 'GET':
+        if id is not None:
+            payment = Payment.query.get(id) # None por defecto si no consigue el registro
+            if payment:
+                return jsonify(payment.serialize()), 200
+            return jsonify({"msg": "Financing Agreement not found"}), 404
+        else:
+            payment = Payment.query.all()
+            payment = list(map(lambda payment: payment.serialize(), payment))
+            return jsonify(payment), 200
+
+    if request.method == 'POST':
+
+        urlPDF = request.json.get("urlPDF", None)
+        amount = request.json.get("amount",None)
+        bank = request.json.get("bank",None)
+        payment_method = request.json.get("payment_method",None)
+        rut = request.json.get("rut", None)
+       
+        
+        if not urlPDF:
+            return jsonify({"msg": "URL is required"}), 400
+        if not amount:
+            return jsonify({"msg": "Amount is required"}), 400
+        if not bank:
+            return jsonify({"msg": "Bank is required"}), 400
+        if not payment_method:
+            return jsonify({"msg": "Payment Method is required"}), 400
+        if not rut:
+            return jsonify({"msg": "RUT is required"}), 400
+        
+
+        payment = Payment.query.filter_by(id=id).first()
+        if payment:
+            return jsonify({"msg": "Payment already exists"}), 400
+        
+        payment = Payment()
+        payment.urlPDF = urlPDF
+        payment.amount = amount
+        payment.bank = bank
+        payment.payment_method = payment_method
+        payment.rut = rut
+
+        payment.save()
+
+        return jsonify({"success": "Payment Register Successfully"}), 200
+
+@app.route('/invoices', methods=['GET', 'POST'])
+@app.route('/invoices/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+def invoices(id = None):
+    if request.method == 'GET':
+        if id is not None:
+            invoice = Invoice.query.get(id) # None por defecto si no consigue el registro
+            if invoice:
+                return jsonify(invoice.serialize()), 200
+            return jsonify({"msg": "Invoice not found"}), 404
+        else:
+            invoice = Invoice.query.all()
+            invoice = list(map(lambda invoice: invoice.serialize(), invoice))
+            return jsonify(invoice), 200
+
+    if request.method == 'POST':
+
+        urlPDF = request.json.get("urlPDF", None)
+        date = request.json.get("data", None)
+        amount = request.json.get("amount",None)
+        rut = request.json.get("rut", None)
+       
+        
+        if not urlPDF:
+            return jsonify({"msg": "URL is required"}), 400
+        if not date:
+            return jsonify({"msg": "Date is required"}), 400
+        if not amount:
+            return jsonify({"msg": "Amount is required"}), 400
+        if not rut:
+            return jsonify({"msg": "RUT is required"}), 400
+        
+
+        invoice = Invoice.query.filter_by(id=id).first()
+        if invoice:
+            return jsonify({"msg": "Invoice already exists"}), 400
+        
+        invoice = Invoice()
+        invoice.urlPDF = urlPDF
+        invoice.date = date
+        invoice.amount = amount
+        invoice.rut = rut
+
+        invoice.save()
+
+        return jsonify({"success": "Invoice Register Successfully"}), 200
+
+@app.route('/credit_notes', methods=['GET', 'POST'])
+@app.route('/credit_notes/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+def credit_notes(id = None):
+    if request.method == 'GET':
+        if id is not None:
+            credit_note = CreditNote.query.get(id) # None por defecto si no consigue el registro
+            if credit_note:
+                return jsonify(credit_note.serialize()), 200
+            return jsonify({"msg": "Credit Note not found"}), 404
+        else:
+            credit_note = CreditNote.query.all()
+            credit_note = list(map(lambda credit_note: credit_note.serialize(), credit_note))
+            return jsonify(credit_note), 200
+
+    if request.method == 'POST':
+
+        urlPDF = request.json.get("urlPDF", None)
+        date = request.json.get("data", None)
+        amount = request.json.get("amount",None)
+        rut = request.json.get("rut", None)
+       
+        
+        if not urlPDF:
+            return jsonify({"msg": "URL is required"}), 400
+        if not date:
+            return jsonify({"msg": "Date is required"}), 400
+        if not amount:
+            return jsonify({"msg": "Amount is required"}), 400
+        if not rut:
+            return jsonify({"msg": "RUT is required"}), 400
+        
+
+        credit_note = CreditNote.query.filter_by(id=id).first()
+        if credit_note:
+            return jsonify({"msg": "Credit Note already exists"}), 400
+        
+        credit_note = CreditNote()
+        credit_note.urlPDF = urlPDF
+        credit_note.date = date
+        credit_note.amount = amount
+        credit_note.rut = rut
+
+        credit_note.save()
+
+        return jsonify({"success": "Credit Note Register Successfully"}), 200        
 
 @app.route('/teacher_questionnaries', methods=['GET', 'POST'])
 @app.route('/teacher_questionnaries/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+@jwt_required
 def teacher_questionnaries(id = None):
     if request.method == 'GET':
         if id is not None:
@@ -457,37 +599,70 @@ def teacher_questionnaries(id = None):
 
     if request.method == 'POST':
 
+        email = get_jwt_identity()
+        staff_user = StaffUser.query.filter_by(email=email).first()
+
         questionnarie_details = request.json.get("questionnarie_details", None)
-       
+        name = request.json.get("name", None)
+
         if not questionnarie_details:
             return jsonify({"msg": "Questionnarie Detail is required"}), 400
-        
+        if not name:
+            return jsonify({"msg": "Name is required"}), 400
+
         questionnarie = TeacherQuestionnarie.query.filter_by(id=id).first()
         if questionnarie:
             return jsonify({"msg": "Questionnarie already exists"}), 400
         
         questionnarie = TeacherQuestionnarie()
         questionnarie.questionnarie_details = questionnarie_details
-        questionnarie.staff_user = "1"
+        questionnarie.name = name
+        questionnarie.staff_user = staff_user.id
 
         questionnarie.save()
 
         return jsonify({"success": "Questionnarie Register Successfully"}), 200
 
 
-@app.route('/strength_questions', methods=['GET', 'POST'])
-@app.route('/strength_questions/<int:id>', methods=['GET', 'PUT', 'DELETE'])
-def strenght_question(id = None):
+    if request.method == 'DELETE':
+
+        delete_questionnarie = TeacherQuestionnarie.query.filter_by(id=id).first()
+        print(delete_questionnarie)
+        db.session.delete(delete_questionnarie)
+        db.session.commit()
+
+        return jsonify({"msg": "Questionnarie deleted"}), 200
+    
+    if request.method == 'PUT':
+        update_questionnarie = TeacherQuestionnarie.query.get(id)
+
+        questionnarie_details = request.form.get('questionnarie_details', None)
+        name = request.form.get('name', None)
+
+        if questionnarie_details != '':
+            update_questionnarie.questionnarie_details = questionnarie_details
+        if name != '':
+            update_questionnarie.name = name
+
+        db.session.commit()
+
+        return ({'msg': 'Questionnarie Updated'})  
+
+
+@app.route('/teacher_questions', methods=['GET', 'POST'])
+@app.route('/teacher_questions/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+@jwt_required
+def teacher_question(id = None):
     if request.method == 'GET':
         if id is not None:
-            strength = StrengthQuestion.query.get(id) # None por defecto si no consigue el registro
-            if strength:
-                return jsonify(strength.serialize()), 200
-            return jsonify({"msg": "Strength Question not found"}), 404
+            teacher_question = TeacherQuestion.query.get(id) # None por defecto si no consigue el registro
+            if teacher_question:
+                return jsonify(teacher_question.serialize()), 200
+            return jsonify({"msg": "Teacher Question not found"}), 404
         else:
-            strength = StrengthQuestion.query.all()
-            strength = list(map(lambda strength: strength.serialize(), strength))
-            return jsonify(strength), 200
+            teacher_question = TeacherQuestion.query.all()
+            teacher_question = list(map(lambda teacher_question: teacher_question.serialize(), teacher_question))
+            return jsonify(teacher_question), 200
 
     if request.method == 'POST':
 
@@ -496,17 +671,159 @@ def strenght_question(id = None):
         if not question:
             return jsonify({"msg": "Question is required"}), 400
         
-        strength = StrengthQuestion.query.filter_by(id=id).first()
-        if strength:
+        teacher_question = TeacherQuestion.query.filter_by(id=id).first()
+        if teacher_question:
             return jsonify({"msg": "Question already exists"}), 400
         
-        strength = StrengthQuestion()
-        strength.question = question
-        strength.questionnarie_id = request.json.get("questionnarie_id", None)
+        teacher_question = TeacherQuestion()
+        teacher_question.question = question
+        teacher_question.questionnarie_id = request.json.get("questionnarie_id", None)
 
-        strength.save()
+        teacher_question.save()
 
-        return jsonify({"success": "Strength Question Register Successfully"}), 200
+        return jsonify({"success": "Teacher Question Register Successfully"}), 200
+
+    if request.method == 'DELETE':
+
+        delete_question = TeacherQuestion.query.filter_by(id=id).first()
+        db.session.delete(delete_question)
+        db.session.commit()
+
+        return jsonify({"msg": "Question deleted"}), 200
+    
+    if request.method == 'PUT':
+        update_question = TeacherQuestion.query.get(id)
+
+        question = request.form.get('question', None)
+        
+        if question != '':
+            update_question.question = question
+    
+        db.session.commit()
+
+        return ({'msg': 'Question Updated'})  
+
+
+@app.route('/student_questionnaries', methods=['GET', 'POST'])
+@app.route('/student_questionnaries/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+@jwt_required
+def student_questionnaries(id = None):
+    if request.method == 'GET':
+        if id is not None:
+            questionnarie = StudentQuestionnarie.query.get(id) # None por defecto si no consigue el registro
+            if questionnarie:
+                return jsonify(questionnarie.serialize()), 200
+            return jsonify({"msg": "Questionarie not found"}), 404
+        else:
+            questionnarie = StudentQuestionnarie.query.all()
+            questionnarie = list(map(lambda questionnarie: questionnarie.serialize(), questionnarie))
+            return jsonify(questionnarie), 200
+
+    if request.method == 'POST':
+
+        email = get_jwt_identity()
+        staff_user = StaffUser.query.filter_by(email=email).first()
+
+        questionnarie_details = request.json.get("questionnarie_details", None)
+        name = request.json.get("name", None)
+
+        if not questionnarie_details:
+            return jsonify({"msg": "Questionnarie Detail is required"}), 400
+        if not name:
+            return jsonify({"msg": "Name is required"}), 400
+
+        questionnarie = StudentQuestionnarie.query.filter_by(id=id).first()
+        if questionnarie:
+            return jsonify({"msg": "Questionnarie already exists"}), 400
+        
+        questionnarie = StudentQuestionnarie()
+        questionnarie.questionnarie_details = questionnarie_details
+        questionnarie.name = name
+        questionnarie.staff_user = staff_user.id
+
+        questionnarie.save()
+
+        return jsonify({"success": "Questionnarie Register Successfully"}), 200
+
+
+    if request.method == 'DELETE':
+
+        delete_questionnarie = StudentQuestionnarie.query.filter_by(id=id).first()
+        db.session.delete(delete_questionnarie)
+        db.session.commit()
+
+        return jsonify({"msg": "Questionnarie deleted"}), 200
+    
+    if request.method == 'PUT':
+        update_questionnarie = StudentQuestionnarie.query.get(id)
+
+        questionnarie_details = request.form.get('questionnarie_details', None)
+        name = request.form.get('name', None)
+
+        if questionnarie_details != '':
+            update_questionnarie.questionnarie_details = questionnarie_details
+        if name != '':
+            update_questionnarie.name = name
+
+
+        db.session.commit()
+
+        return ({'msg': 'Questionnarie Updated'})  
+
+
+@app.route('/student_questions', methods=['GET', 'POST'])
+@app.route('/student_questions/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+@jwt_required
+def student_questions(id = None):
+    if request.method == 'GET':
+        if id is not None:
+            student_question = StudentQuestion.query.get(id) # None por defecto si no consigue el registro
+            if student_question:
+                return jsonify(student_question.serialize()), 200
+            return jsonify({"msg": "Student Question not found"}), 404
+        else:
+            student_question = StudentQuestion.query.all()
+            student_question = list(map(lambda student_question: student_question.serialize(), student_question))
+            return jsonify(student_question), 200
+
+    if request.method == 'POST':
+
+        question = request.json.get("question", None)
+       
+        if not question:
+            return jsonify({"msg": "Question is required"}), 400
+        
+        student_question = StudentQuestion.query.filter_by(id=id).first()
+        if student_question:
+            return jsonify({"msg": "Question already exists"}), 400
+        
+        student_question = StudentQuestion()
+        student_question.question = question
+        student_question.questionnarie_id = request.json.get("questionnarie_id", None)
+
+        student_question.save()
+
+        return jsonify({"success": "Student Question Register Successfully"}), 200
+
+    if request.method == 'DELETE':
+
+        delete_question = StudentQuestion.query.filter_by(id=id).first()
+        db.session.delete(delete_question)
+        db.session.commit()
+
+        return jsonify({"msg": "Question deleted"}), 200
+    
+    if request.method == 'PUT':
+        update_question = StudentQuestion.query.get(id)
+
+        question = request.form.get('question', None)
+        
+        if question != '':
+            update_question.question = question
+    
+        db.session.commit()
+
+        return ({'msg': 'Question Updated'}) 
 
 
 # this only runs if `$ python src/main.py` is executed
