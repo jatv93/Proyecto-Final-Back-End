@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, Role, StaffUser, TeacherUser, StudentUser, Profile, EnrrollmentAgreement, Financing, Payment, Invoice, CreditNote, TeacherQuestionnarie, TeacherQuestion, StudentQuestionnarie, StudentQuestion
+from models import db, Role, StaffUser, TeacherUser, StudentUser, Profile, EnrrollmentAgreement, Financing, Payment, Invoice, CreditNote, TeacherQuestionnarie, TeacherQuestion, StudentQuestionnarie, StudentQuestion, TeacherAnswer
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended.jwt_manager import JWTManager
 from flask_jwt_extended.utils import create_access_token, get_jwt_identity
@@ -395,11 +395,12 @@ def enrrollment_agreements(breathecode_id = None):
         return jsonify({"success": "Enrrollment Agreement Register Successfully"}), 200
 
 @app.route('/financing_agreements', methods=['GET', 'POST'])
-@app.route('/financing_agreements/<int:rut>', methods=['GET', 'PUT', 'DELETE'])
+@app.route('/financing_agreements/<string:rut>', methods=['GET', 'PUT', 'DELETE'])
 def financing_agreements(rut = None):
     if request.method == 'GET':
         if rut is not None:
-            financing = Financing.query.get(rut) # None por defecto si no consigue el registro
+            financing = Financing.query.filter_by(rut=rut).first() # None por defecto si no consigue el registro
+            print(rut)
             if financing:
                 return jsonify(financing.serialize()), 200
             return jsonify({"msg": "Financing Agreement not found"}), 404
@@ -824,6 +825,61 @@ def student_questions(id = None):
         db.session.commit()
 
         return ({'msg': 'Question Updated'}) 
+
+@app.route('/teacher_answers', methods=['GET', 'POST'])
+@app.route('/teacher_answers/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+@jwt_required
+def teacher_answer(id = None):
+    if request.method == 'GET':
+        if id is not None:
+            teacher_answer = TeacherAnswer.query.get(id) # None por defecto si no consigue el registro
+            if teacher_answer:
+                return jsonify(teacher_answer.serialize()), 200
+            return jsonify({"msg": "Teacher Answer not found"}), 404
+        else:
+            teacher_answer = TeacherAnswer.query.all()
+            teacher_answer = list(map(lambda teacher_answer: teacher_answer.serialize(), teacher_answer))
+            return jsonify(teacher_answer), 200
+
+    if request.method == 'POST':
+
+        answer = request.json.get("answer", None)
+       
+        if not answer:
+            return jsonify({"msg": "Answer is required"}), 400
+        
+        teacher_answer = TeacherAnswer.query.filter_by(id=id).first()
+        if teacher_answer:
+            return jsonify({"msg": "Answer already exists"}), 400
+        
+        teacher_answer = TeacherAnswer()
+        teacher_answer.answer = answer
+        teacher_answer.questionnarie_id = request.json.get("questionnarie_id", None)
+
+        teacher_answer.save()
+
+        return jsonify({"success": "Teacher Answer Register Successfully"}), 200
+
+    if request.method == 'DELETE':
+
+        delete_answer = TeacherAnswer.query.filter_by(id=id).first()
+        db.session.delete(delete_answer)
+        db.session.commit()
+
+        return jsonify({"msg": "Answer deleted"}), 200
+    
+    if request.method == 'PUT':
+        update_answer = TeacherAnswer.query.get(id)
+
+        answer = request.form.get('answer', None)
+        
+        if answer != '':
+            update_answer.answer = answer
+    
+        db.session.commit()
+
+        return ({'msg': 'Answer Updated'})  
+
 
 
 # this only runs if `$ python src/main.py` is executed
