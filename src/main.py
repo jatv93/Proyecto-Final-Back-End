@@ -82,7 +82,7 @@ def student_users(id = None):
         student.lastName = request.json.get("lastName", "")
         student.email = email
         student.password = bcrypt.generate_password_hash(password).decode("utf-8")
-        student.role_id = "1"
+        student.role_id = "2"
 
         student.save()
 
@@ -193,7 +193,7 @@ def teacher_users(id = None):
         teacher.lastName = request.json.get("lastName", "")
         teacher.email = email
         teacher.password = bcrypt.generate_password_hash(password).decode("utf-8")
-        teacher.role_id = "1"
+        teacher.role_id = "3"
 
         teacher.save()
 
@@ -635,10 +635,13 @@ def teacher_questionnaries(id = None):
         return jsonify({"msg": "Questionnarie deleted"}), 200
     
     if request.method == 'PUT':
-        update_questionnarie = TeacherQuestionnarie.query.get(id)
+        update_questionnarie = TeacherQuestionnarie.query.filter_by(id=id).first()
+        print(update_questionnarie)
+        print(request.json.get("name"))
+        print(request.json.get("questionnarie_details"))
 
-        questionnarie_details = request.form.get('questionnarie_details', None)
-        name = request.form.get('name', None)
+        questionnarie_details = request.json.get('questionnarie_details', None)
+        name = request.json.get('name', None)
 
         if questionnarie_details != '':
             update_questionnarie.questionnarie_details = questionnarie_details
@@ -756,10 +759,10 @@ def student_questionnaries(id = None):
         return jsonify({"msg": "Questionnarie deleted"}), 200
     
     if request.method == 'PUT':
-        update_questionnarie = StudentQuestionnarie.query.get(id)
+        update_questionnarie = StudentQuestionnarie.query.filter_by(id=id).first()
 
-        questionnarie_details = request.form.get('questionnarie_details', None)
-        name = request.form.get('name', None)
+        questionnarie_details = request.json.get('questionnarie_details', None)
+        name = request.json.get('name', None)
 
         if questionnarie_details != '':
             update_questionnarie.questionnarie_details = questionnarie_details
@@ -828,7 +831,6 @@ def student_questions(id = None):
 
 @app.route('/teacher_answers', methods=['GET', 'POST'])
 @app.route('/teacher_answers/<int:id>', methods=['GET', 'PUT', 'DELETE'])
-@jwt_required
 def teacher_answer(id = None):
     if request.method == 'GET':
         if id is not None:
@@ -854,7 +856,6 @@ def teacher_answer(id = None):
         
         teacher_answer = TeacherAnswer()
         teacher_answer.answer = answer
-        teacher_answer.questionnarie_id = request.json.get("questionnarie_id", None)
 
         teacher_answer.save()
 
