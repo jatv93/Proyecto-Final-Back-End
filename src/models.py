@@ -361,9 +361,6 @@ class JobProfile(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     breathecode_id = db.Column(db.Integer, db.ForeignKey('profiles.breathecode_id'), unique=True, nullable=False)
     urlPDF = db.Column(db.String(200), unique=False, nullable=False)
-    
-    def __repr__(self):
-        return f"payment('{self.breathecode_id}', '{self.urlPDF}')"
 
     def serialize(self):
         return {
@@ -465,14 +462,17 @@ class TeacherQuestion(db.Model):
         db.session.commit()
 
 class TeacherAnswer(db.Model):
-    __tablename__ = 'teacher_answers'
+    __tablename__ = 'teacher_answers' 
+    __table_args__ = (
+        db.UniqueConstraint('breathecode_id', 'teacher_user', 'teacher_question_id' , name='unique_teacher_answer'),
+    )
     id = db.Column(db.Integer, primary_key=True)
-    teacher_question_id = db.Column(db.Integer, db.ForeignKey('teacher_questions.id'), unique=True, nullable=False)
+    teacher_question_id = db.Column(db.Integer, db.ForeignKey('teacher_questions.id'), unique=False, nullable=False)
     answer = db.Column(db.String(200), unique=False, nullable=False)
-    teacher_user = db.Column(db.Integer, db.ForeignKey('teacher_users.id'), unique=True, nullable=False)
-    breathecode_id = db.Column(db.Integer, db.ForeignKey('profiles.breathecode_id'), unique=True, nullable=False)
+    breathecode_id = db.Column(db.Integer, db.ForeignKey('profiles.breathecode_id'), unique=False, nullable=False)
     date = db.Column(db.DateTime, default=datetime.utcnow)
-    questionnarie_id = db.Column(db.Integer, db.ForeignKey('teacher_questionnaries.id'), unique=True, nullable=False)
+    questionnarie_id = db.Column(db.Integer, db.ForeignKey('teacher_questionnaries.id'), unique=False, nullable=False)
+    teacher_user = db.Column(db.Integer, db.ForeignKey('teacher_users.id'), unique=False, nullable=False)
 
     def serialize(self):
         return {
@@ -481,7 +481,8 @@ class TeacherAnswer(db.Model):
             "answer": self.answer,
             "teacher_user": self.teacher_user,
             "breathecode_id": self.breathecode_id,
-            "date": self.date
+            "date": self.date,
+            "question_id": self.teacher_question_id
         }
 
     def save(self):

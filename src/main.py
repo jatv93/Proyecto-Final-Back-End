@@ -696,9 +696,10 @@ def teacher_question(id = None):
         return jsonify({"msg": "Question deleted"}), 200
     
     if request.method == 'PUT':
-        update_question = TeacherQuestion.query.get(id)
+        update_question = TeacherQuestion.query.filter_by(id=id).first()
+        print(update_question)
 
-        question = request.form.get('question', None)
+        question = request.json.get('question', None)
         
         if question != '':
             update_question.question = question
@@ -818,9 +819,9 @@ def student_questions(id = None):
         return jsonify({"msg": "Question deleted"}), 200
     
     if request.method == 'PUT':
-        update_question = StudentQuestion.query.get(id)
+        update_question = StudentQuestion.query.filter_by(id=id).first()
 
-        question = request.form.get('question', None)
+        question = request.json.get('question', None)
         
         if question != '':
             update_question.question = question
@@ -831,6 +832,7 @@ def student_questions(id = None):
 
 @app.route('/teacher_answers', methods=['GET', 'POST'])
 @app.route('/teacher_answers/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+@jwt_required
 def teacher_answer(id = None):
     if request.method == 'GET':
         if id is not None:
@@ -845,10 +847,23 @@ def teacher_answer(id = None):
 
     if request.method == 'POST':
 
+        email = get_jwt_identity()
+        teacher_user = TeacherUser.query.filter_by(email=email).first()
+        
+
         answer = request.json.get("answer", None)
+        questionnarie_id = request.json.get("questionnarie_id", None)
+        teacher_question_id = request.json.get("teacher_question_id", None)
+        breathecode_id = request.json.get("breathecode_id",None)
        
         if not answer:
             return jsonify({"msg": "Answer is required"}), 400
+        if not questionnarie_id:
+            return jsonify({"msg": "Questionnarie_id is required"}), 400
+        if not teacher_question_id:
+            return jsonify({"msg": "Question_id is required"}), 400
+        if not breathecode_id:
+            return jsonify({"msg": "Breathecode_id is required"}), 400
         
         teacher_answer = TeacherAnswer.query.filter_by(id=id).first()
         if teacher_answer:
@@ -856,6 +871,10 @@ def teacher_answer(id = None):
         
         teacher_answer = TeacherAnswer()
         teacher_answer.answer = answer
+        teacher_answer.questionnarie_id = request.json.get("questionnarie_id", None)
+        teacher_answer.teacher_question_id = request.json.get("teacher_question_id", None)
+        teacher_answer.breathecode_id = request.json.get("breathecode_id",None)
+        teacher_answer.teacher_user = "1"
 
         teacher_answer.save()
 
@@ -872,7 +891,7 @@ def teacher_answer(id = None):
     if request.method == 'PUT':
         update_answer = TeacherAnswer.query.get(id)
 
-        answer = request.form.get('answer', None)
+        answer = request.json.get('answer', None)
         
         if answer != '':
             update_answer.answer = answer

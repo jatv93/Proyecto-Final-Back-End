@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: d14a292db849
+Revision ID: 0ba6ce4d7cb1
 Revises: 
-Create Date: 2020-08-26 22:17:22.858564
+Create Date: 2020-12-29 20:44:58.913996
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'd14a292db849'
+revision = '0ba6ce4d7cb1'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -117,7 +117,7 @@ def upgrade():
     sa.Column('months', sa.Integer(), nullable=False),
     sa.Column('monthlyFee', sa.String(length=100), nullable=False),
     sa.Column('date', sa.DateTime(), nullable=True),
-    sa.Column('rut', sa.Integer(), nullable=False),
+    sa.Column('rut', sa.String(length=100), nullable=False),
     sa.Column('urlPDF', sa.String(length=200), nullable=False),
     sa.ForeignKeyConstraint(['rut'], ['profiles.rut'], ),
     sa.PrimaryKeyConstraint('id'),
@@ -199,19 +199,16 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('teacher_question_id', sa.Integer(), nullable=False),
     sa.Column('answer', sa.String(length=200), nullable=False),
-    sa.Column('teacher_user', sa.Integer(), nullable=False),
     sa.Column('breathecode_id', sa.Integer(), nullable=False),
     sa.Column('date', sa.DateTime(), nullable=True),
     sa.Column('questionnarie_id', sa.Integer(), nullable=False),
+    sa.Column('teacher_user', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['breathecode_id'], ['profiles.breathecode_id'], ),
     sa.ForeignKeyConstraint(['questionnarie_id'], ['teacher_questionnaries.id'], ),
     sa.ForeignKeyConstraint(['teacher_question_id'], ['teacher_questions.id'], ),
     sa.ForeignKeyConstraint(['teacher_user'], ['teacher_users.id'], ),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('breathecode_id'),
-    sa.UniqueConstraint('questionnarie_id'),
-    sa.UniqueConstraint('teacher_question_id'),
-    sa.UniqueConstraint('teacher_user')
+    sa.UniqueConstraint('breathecode_id', 'teacher_user', 'teacher_question_id', name='unique_teacher_answer')
     )
     # ### end Alembic commands ###
 
